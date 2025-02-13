@@ -1,18 +1,18 @@
+import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
-import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
+dotenv.config();
 
-export default {
-	async fetch(request, env, ctx) {
-		const vacantes = await handleScheduled(env);
-		return new Response(JSON.stringify(vacantes, null, 2), {
-			headers: { 'Content-Type': 'application/json' },
+async function main() {
+	try {
+		const vacantes = await handleScheduled({
+			SUPABASE_URL: process.env.SUPABASE_URL,
+			SUPABASE_KEY: process.env.SUPABASE_KEY,
 		});
-	},
-
-	async scheduled(event, env, ctx) {
-		ctx.waitUntil(await handleScheduled(env));
-	},
-};
+	} catch (error) {
+		console.error('Error en la ejecución principal:', error);
+	}
+}
 
 async function handleScheduled(env) {
 	try {
@@ -24,7 +24,7 @@ async function handleScheduled(env) {
 		});
 
 		const html = await response.text();
-		const $ = cheerio.load(html);
+		const $ = load(html);
 		const rows = $('table tbody tr .row');
 
 		const vacantes = [];
@@ -42,23 +42,23 @@ async function handleScheduled(env) {
 
 		if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-		const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
+		//const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
 
-		if (selectError) console.error('Error in select:', selectError);
+		//if (selectError) console.error('Error in select:', selectError);
 
-		const dias_restantes = data.map((vacante) => {
-			return {
-				codigo: vacante.codigo,
-				dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
-			};
-		});
+		// const dias_restantes = data.map((vacante) => {
+		// 	return {
+		// 		codigo: vacante.codigo,
+		// 		dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
+		// 	};
+		// });
 
-		const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
-			onConflict: ['codigo'],
-			ignoreDuplicates: false,
-		});
+		// const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
+		// 	onConflict: ['codigo'],
+		// 	ignoreDuplicates: false,
+		// });
 
-		if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
+		//if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
 
 		return vacantes;
 	} catch (error) {
@@ -132,3 +132,14 @@ function convertToBogotatime(dateStr) {
 	const [day, month, year] = dateStr.split('/');
 	return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00-05:00`).toISOString();
 }
+
+// Ejecutar el script
+main();
+
+// Exportar funciones para testing
+export default {
+	handleScheduled,
+	extraerDatosVacante,
+	calcularDiasRestantes,
+	convertToBogotatime,
+};
