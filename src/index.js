@@ -23,7 +23,7 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 		},
 	});
 
-	if (!response.ok) return console.error('Error en la petición:', response.statusText, 'Status:', response.status);
+	if (!response.ok) return console.log('Error en la petición:', response.statusText, 'Status:', response.status);
 
 	const html = await response.text();
 	const $ = load(html);
