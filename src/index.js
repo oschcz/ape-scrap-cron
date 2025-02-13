@@ -22,6 +22,7 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
 		},
 	});
+
 	if (!response.ok) return console.error('Error en la petición:', response.statusText, 'Status:', response.status);
 
 	const html = await response.text();
@@ -36,35 +37,32 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 		}
 	});
 
-	console.log('Vacantes:', vacantes.length);
-	if (vacantes.length > 0) {
-		const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
-			onConflict: ['codigo'],
-			ignoreDuplicates: false,
-		});
+	if (vacantes.length === 0) return;
 
-		if (upsertError) console.error('Error in batch upsert:', upsertError);
+	const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
+		onConflict: ['codigo'],
+		ignoreDuplicates: false,
+	});
 
-		const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
+	if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-		if (selectError) console.error('Error in select:', selectError);
+	const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
 
-		const dias_restantes = data.map((vacante) => {
-			return {
-				codigo: vacante.codigo,
-				dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
-			};
-		});
+	if (selectError) console.error('Error in select:', selectError);
 
-		const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
-			onConflict: ['codigo'],
-			ignoreDuplicates: false,
-		});
+	const dias_restantes = data.map((vacante) => {
+		return {
+			codigo: vacante.codigo,
+			dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
+		};
+	});
 
-		if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
-	}
+	const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
+		onConflict: ['codigo'],
+		ignoreDuplicates: false,
+	});
 
-	return vacantes;
+	if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
 }
 
 function extraerDatosVacante($, element) {
@@ -78,7 +76,7 @@ function extraerDatosVacante($, element) {
 	let tipoContrato = '';
 	let teletrabajo = '';
 
-	parrafos.each((i, el) => {
+	parrafos.each((_, el) => {
 		const texto = $(el).text().trim();
 		if (texto.toLowerCase().includes('experiencia')) {
 			experiencia = texto;
