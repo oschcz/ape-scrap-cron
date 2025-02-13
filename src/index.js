@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { load } from 'cheerio';
+import cron from 'node-cron';
 dotenv.config();
 
 async function main() {
@@ -132,5 +133,11 @@ function convertToBogotatime(dateStr) {
 	const [day, month, year] = dateStr.split('/');
 	return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00-05:00`).toISOString();
 }
+
+// Configurar el cron para ejecutar cada minuto
+cron.schedule('* * * * *', () => {
+	console.log('Ejecutando tarea programada: ', new Date().toLocaleString());
+	main();
+});
 
 main();
