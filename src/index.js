@@ -40,30 +40,32 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 			}
 		});
 
-		const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
-			onConflict: ['codigo'],
-			ignoreDuplicates: false,
-		});
+		if (vacantes.length > 0) {
+			const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
+				onConflict: ['codigo'],
+				ignoreDuplicates: false,
+			});
 
-		if (upsertError) console.error('Error in batch upsert:', upsertError);
+			if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-		const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
+			const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
 
-		if (selectError) console.error('Error in select:', selectError);
+			if (selectError) console.error('Error in select:', selectError);
 
-		const dias_restantes = data.map((vacante) => {
-			return {
-				codigo: vacante.codigo,
-				dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
-			};
-		});
+			const dias_restantes = data.map((vacante) => {
+				return {
+					codigo: vacante.codigo,
+					dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
+				};
+			});
 
-		const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
-			onConflict: ['codigo'],
-			ignoreDuplicates: false,
-		});
+			const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
+				onConflict: ['codigo'],
+				ignoreDuplicates: false,
+			});
 
-		if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
+			if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
+		}
 
 		return vacantes;
 	} catch (error) {
