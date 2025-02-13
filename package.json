@@ -7,8 +7,9 @@
 		"start": "node src/index.js"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "latest",
-		"cheerio": "latest",
-		"dotenv": "latest"
+		"@supabase/supabase-js": "2.48.1",
+		"cheerio": "1.0.0",
+		"dotenv": "16.4.7",
+		"node-cron": "3.0.3"
 	}
 }

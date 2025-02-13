@@ -5,7 +5,7 @@ dotenv.config();
 
 async function main() {
 	try {
-		const vacantes = await handleScheduled({
+		await handleScheduled({
 			SUPABASE_URL: process.env.SUPABASE_URL,
 			SUPABASE_KEY: process.env.SUPABASE_KEY,
 		});
@@ -14,9 +14,9 @@ async function main() {
 	}
 }
 
-async function handleScheduled(env) {
+async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 	try {
-		const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
+		const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 		const response = await fetch('https://ape.sena.edu.co/spe-web/spe/public/buscadorVacante?solicitudId=barrancabermeja', {
 			headers: {
 				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -42,23 +42,23 @@ async function handleScheduled(env) {
 
 		if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-		//const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
+		const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
 
-		//if (selectError) console.error('Error in select:', selectError);
+		if (selectError) console.error('Error in select:', selectError);
 
-		// const dias_restantes = data.map((vacante) => {
-		// 	return {
-		// 		codigo: vacante.codigo,
-		// 		dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
-		// 	};
-		// });
+		const dias_restantes = data.map((vacante) => {
+			return {
+				codigo: vacante.codigo,
+				dias_restantes: calcularDiasRestantes(vacante.fecha_cierre),
+			};
+		});
 
-		// const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
-		// 	onConflict: ['codigo'],
-		// 	ignoreDuplicates: false,
-		// });
+		const { error: upsertErrorDias } = await supabase.from('vacantes').upsert(dias_restantes, {
+			onConflict: ['codigo'],
+			ignoreDuplicates: false,
+		});
 
-		//if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
+		if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
 
 		return vacantes;
 	} catch (error) {
@@ -133,13 +133,4 @@ function convertToBogotatime(dateStr) {
 	return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00-05:00`).toISOString();
 }
 
-// Ejecutar el script
 main();
-
-// Exportar funciones para testing
-export default {
-	handleScheduled,
-	extraerDatosVacante,
-	calcularDiasRestantes,
-	convertToBogotatime,
-};
