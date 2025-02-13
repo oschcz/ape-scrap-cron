@@ -1,11 +1,14 @@
 {
 	"name": "ape-scrap-cron",
 	"version": "1.0.0",
-	"private": true,
-	"scripts": {},
-	"devDependencies": {},
+	"main": "src/index.js",
+	"type": "module",
+	"scripts": {
+		"start": "node src/index.js"
+	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.48.1",
-		"cheerio": "^1.0.0"
+		"@supabase/supabase-js": "latest",
+		"cheerio": "latest",
+		"dotenv": "latest"
 	}
 }
