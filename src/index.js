@@ -22,8 +22,7 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
 		},
 	});
-	console.log('Status:', response.status);
-	if (!response.ok) return console.error('Error en la petición:', response.statusText);
+	if (!response.ok) return console.error('Error en la petición:', response.statusText, 'Status:', response.status);
 
 	const html = await response.text();
 	const $ = load(html);
