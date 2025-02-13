@@ -1,0 +1,11 @@
+{
+	"name": "ape-scrap-cron",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {},
+	"devDependencies": {},
+	"dependencies": {
+		"@supabase/supabase-js": "^2.48.1",
+		"cheerio": "^1.0.0"
+	}
+}
