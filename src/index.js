@@ -24,6 +24,10 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 			},
 		});
 
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
 		const html = await response.text();
 		const $ = load(html);
 		const rows = $('table tbody tr .row');
