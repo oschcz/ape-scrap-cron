@@ -135,7 +135,7 @@ function convertToBogotatime(dateStr) {
 }
 
 // Configurar el cron para ejecutar cada minuto
-cron.schedule('* * * * *', () => {
+cron.schedule('*/5 * * * *', () => {
 	console.log('Ejecutando tarea programada: ', new Date().toLocaleString());
 	main();
 });
