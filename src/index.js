@@ -63,6 +63,9 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 	});
 
 	if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
+
+	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString());
+	console.log('Vacantes actualizadas:', vacantes.length);
 }
 
 function extraerDatosVacante($, element) {
@@ -133,7 +136,6 @@ function convertToBogotatime(dateStr) {
 
 // Configurar el cron para ejecutar cada minuto
 cron.schedule('*/10 * * * *', () => {
-	console.log('Ejecutando tarea programada: ', new Date().toLocaleString());
 	main();
 });
 
