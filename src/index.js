@@ -39,21 +39,22 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 	//const msg = `Se han encontrado ${vacantesNuevas.length} vacantes nuevas en el portal del SENA.`;
 	let textMsg = '';
 	vacantesNuevas.forEach(async (vacante) => {
-		let textMsg = `🔔 Nueva Vacante en el SENA 🔔
+		let textMsg = `🚀 Nueva Vacante en el SENA 🚀  
 
-- Cargo: ${vacante.cargo}
-- Salario: ${vacante.salario}
-- Experiencia: ${vacante.experiencia}
-==============================================
-- Tipo de Contrato: ${vacante.tipo_contrato}
-- Ubicación: ${vacante.ubicacion}
-==============================================
-- Vacantes: ${vacante.num_vacantes}
-- Postulaciones: ${vacante.num_postulaciones}
-==============================================
-- Cierre: ${new Date(vacante.fecha_cierre).toLocaleDateString()}
-- Días Restantes: ${vacante.dias_restantes}
-- URL: ${vacante.url}`;
+📌 Cargo: ${vacante.cargo}  
+💵 Salario: ${vacante.salario}  
+📅 Experiencia: ${vacante.experiencia}  
+
+📜 Tipo de Contrato: ${vacante.tipo_contrato}  
+📍 Ubicación: ${vacante.ubicacion}  
+
+👥 Vacantes: ${vacante.num_vacantes}  
+📤 Postulados: ${vacante.num_postulaciones}  
+
+⏳ Cierre: ${new Date(vacante.fecha_cierre).toLocaleDateString()}  
+📅 Días Restantes: ${vacante.dias_restantes}  
+
+🔗 URL: ${vacante.url}  `;
 
 		await enviarMensaje({ msg: textMsg });
 		setTimeout(() => {}, 2000);
