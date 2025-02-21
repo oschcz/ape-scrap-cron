@@ -36,7 +36,11 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 
 	const vacantesNuevas = vacantes.filter((vacante) => !data.some((v) => v.codigo === vacante.codigo));
 
-	//const msg = `Se han encontrado ${vacantesNuevas.length} vacantes nuevas en el portal del SENA.`;
+	console.log('Vacantes nuevas:', vacantesNuevas.length);
+	console.log('Vacantes nuevas:', vacantesNuevas);
+
+	if (vacantesNuevas.length === 0) return;
+
 	let textMsg = '';
 	vacantesNuevas.forEach(async (vacante) => {
 		let textMsg = `🚀 Nueva Vacante en el SENA 🚀  
@@ -51,7 +55,12 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 👥 Vacantes: ${vacante.num_vacantes}  
 📤 Postulados: ${vacante.num_postulaciones}  
 
-⏳ Cierre: ${new Date(vacante.fecha_cierre).toLocaleString('en-US', { timeZone: 'America/Bogota' })}  
+⏳ Cierre: ${new Date(vacante.fecha_cierre).toLocaleString('en-GB', {
+			timeZone: 'America/Bogota',
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+		})}  
 📅 Días Restantes: ${vacante.dias_restantes}  
 
 🔗 URL: ${vacante.url}  `;
@@ -60,9 +69,6 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 		setTimeout(() => {}, 2000);
 	});
 	console.log(textMsg);
-
-	console.log('Vacantes nuevas:', vacantesNuevas.length);
-	console.log('Vacantes nuevas:', vacantesNuevas);
 
 	const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
 		onConflict: ['codigo'],
