@@ -176,7 +176,6 @@ cron.schedule('* * * * *', () => {
 	}
 	main();
 });
-main();
 cron.schedule('0 */2 * * *', () => {
 	async function main() {
 		try {
@@ -190,3 +189,11 @@ cron.schedule('0 */2 * * *', () => {
 	}
 	main();
 });
+
+async function enviarMensaje({ msg }) {
+	try {
+		await sendTelegramMessage(msg);
+	} catch (error) {
+		console.error('Error:', error);
+	}
+}
