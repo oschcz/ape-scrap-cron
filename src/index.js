@@ -161,28 +161,22 @@ function convertToBogotatime(dateStr) {
 	const [day, month, year] = dateStr.split('/');
 	return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00-05:00`).toISOString();
 }
-async function main() {
-	try {
-		await obtenerVacantesPublicadas({
-			SUPABASE_URL: process.env.SUPABASE_URL,
-			SUPABASE_KEY: process.env.SUPABASE_KEY,
-		});
-	} catch (error) {
-		console.error('Error en la ejecución principal:', error);
-	}
-}
+
 // Configurar el cron para ejecutar cada minuto
 cron.schedule('* * * * *', () => {
-	async function enviarMensaje({ msg }) {
+	async function main() {
 		try {
-			await sendTelegramMessage(msg);
+			await obtenerVacantesPublicadas({
+				SUPABASE_URL: process.env.SUPABASE_URL,
+				SUPABASE_KEY: process.env.SUPABASE_KEY,
+			});
 		} catch (error) {
-			console.error('Error:', error);
+			console.error('Error en la ejecución principal:', error);
 		}
 	}
-
 	main();
 });
+main();
 cron.schedule('0 */2 * * *', () => {
 	async function main() {
 		try {
