@@ -19,8 +19,7 @@ create table vacantes (
   fecha_cierre timestamp with time zone,
   dias_restantes integer,
   url text,
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now()
+  created_at timestamp with time zone default now()
 );
 
 alter table vacantes ENABLE row LEVEL SECURITY;

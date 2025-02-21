@@ -2,20 +2,11 @@ import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { load } from 'cheerio';
 import cron from 'node-cron';
+import sendTelegramMessage from './telegram-sender.js';
+
 dotenv.config();
 
-async function main() {
-	try {
-		await handleScheduled({
-			SUPABASE_URL: process.env.SUPABASE_URL,
-			SUPABASE_KEY: process.env.SUPABASE_KEY,
-		});
-	} catch (error) {
-		console.error('Error en la ejecución principal:', error);
-	}
-}
-
-async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
+async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 	const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 	const response = await fetch('https://ape.sena.edu.co/spe-web/spe/public/buscadorVacante?solicitudId=barrancabermeja', {
 		headers: {
@@ -30,7 +21,7 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 	const rows = $('table tbody tr .row');
 
 	const vacantes = [];
-	rows.each((i, element) => {
+	rows.each((_, element) => {
 		const vacante = extraerDatosVacante($, element);
 		if (vacante.codigo) {
 			vacantes.push(vacante);
@@ -39,6 +30,39 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 
 	if (vacantes.length === 0) return;
 
+	const { data, error: selectError } = await supabase.from('vacantes').select('codigo');
+
+	if (selectError) console.error('Error in select:', selectError);
+
+	const vacantesNuevas = vacantes.filter((vacante) => !data.some((v) => v.codigo === vacante.codigo));
+
+	//const msg = `Se han encontrado ${vacantesNuevas.length} vacantes nuevas en el portal del SENA.`;
+	let textMsg = '';
+	vacantesNuevas.forEach(async (vacante) => {
+		let textMsg = `🔔 Nueva Vacante en el SENA 🔔
+
+- Cargo: ${vacante.cargo}
+- Salario: ${vacante.salario}
+- Experiencia: ${vacante.experiencia}
+==============================================
+- Tipo de Contrato: ${vacante.tipo_contrato}
+- Ubicación: ${vacante.ubicacion}
+==============================================
+- Vacantes: ${vacante.num_vacantes}
+- Postulaciones: ${vacante.num_postulaciones}
+==============================================
+- Cierre: ${new Date(vacante.fecha_cierre).toLocaleDateString()}
+- Días Restantes: ${vacante.dias_restantes}
+- URL: ${vacante.url}`;
+
+		await enviarMensaje({ msg: textMsg });
+		setTimeout(() => {}, 2000);
+	});
+	console.log(textMsg);
+
+	console.log('Vacantes nuevas:', vacantesNuevas.length);
+	console.log('Vacantes nuevas:', vacantesNuevas);
+
 	const { error: upsertError } = await supabase.from('vacantes').upsert(vacantes, {
 		onConflict: ['codigo'],
 		ignoreDuplicates: false,
@@ -46,7 +70,14 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 
 	if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-	const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre, dias_restantes');
+	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString());
+	console.log('Vacantes actualizadas:', vacantes.length);
+}
+
+async function DiasRestantesVacante({ SUPABASE_URL, SUPABASE_KEY }) {
+	const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+	const { data, error: selectError } = await supabase.from('vacantes').select('codigo, fecha_cierre');
 
 	if (selectError) console.error('Error in select:', selectError);
 
@@ -63,9 +94,6 @@ async function handleScheduled({ SUPABASE_URL, SUPABASE_KEY }) {
 	});
 
 	if (upsertErrorDias) console.error('Error in batch upsert:', upsertErrorDias);
-
-	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString());
-	console.log('Vacantes actualizadas:', vacantes.length);
 }
 
 function extraerDatosVacante($, element) {
@@ -102,7 +130,6 @@ function extraerDatosVacante($, element) {
 	const fechaCierreText = container.find('div.span3 p:contains("Fecha de cierre")').text();
 	const fechaCierre = fechaCierreText.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || '';
 	const url = container.find('div.span1 a.btn-primary').attr('href').split(';')[0] || '';
-
 	const diasRestantes = calcularDiasRestantes(convertToBogotatime(fechaCierre));
 
 	return {
@@ -133,10 +160,39 @@ function convertToBogotatime(dateStr) {
 	const [day, month, year] = dateStr.split('/');
 	return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00-05:00`).toISOString();
 }
-
+async function main() {
+	try {
+		await obtenerVacantesPublicadas({
+			SUPABASE_URL: process.env.SUPABASE_URL,
+			SUPABASE_KEY: process.env.SUPABASE_KEY,
+		});
+	} catch (error) {
+		console.error('Error en la ejecución principal:', error);
+	}
+}
 // Configurar el cron para ejecutar cada minuto
-cron.schedule('*/10 * * * *', () => {
+cron.schedule('* * * * *', () => {
 	main();
 });
-
 main();
+// cron.schedule('0 */2 * * *', () => {
+// 	async function main() {
+// 		try {
+// 			await DiasRestantesVacante({
+// 				SUPABASE_URL: process.env.SUPABASE_URL,
+// 				SUPABASE_KEY: process.env.SUPABASE_KEY,
+// 			});
+// 		} catch (error) {
+// 			console.error('Error en la ejecución principal:', error);
+// 		}
+// 	}
+// 	main();
+// });
+
+async function enviarMensaje({ msg }) {
+	try {
+		await sendTelegramMessage(msg);
+	} catch (error) {
+		console.error('Error:', error);
+	}
+}
