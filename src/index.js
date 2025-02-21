@@ -163,7 +163,7 @@ function convertToBogotatime(dateStr) {
 }
 
 // Configurar el cron para ejecutar cada minuto
-cron.schedule('* * * * *', () => {
+cron.schedule('*/5 * * * *', () => {
 	async function main() {
 		try {
 			await obtenerVacantesPublicadas({
