@@ -51,7 +51,7 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 👥 Vacantes: ${vacante.num_vacantes}  
 📤 Postulados: ${vacante.num_postulaciones}  
 
-⏳ Cierre: ${new Date(vacante.fecha_cierre).toLocaleDateString()}  
+⏳ Cierre: ${new Date(vacante.fecha_cierre).toLocaleString('en-US', { timeZone: 'America/Bogota' })}  
 📅 Días Restantes: ${vacante.dias_restantes}  
 
 🔗 URL: ${vacante.url}  `;
@@ -71,7 +71,7 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 
 	if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString());
+	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
 	console.log('Vacantes actualizadas:', vacantes.length);
 }
 
