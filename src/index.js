@@ -37,7 +37,6 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 	const vacantesNuevas = vacantes.filter((vacante) => !data.some((v) => v.codigo === vacante.codigo));
 
 	console.log('Vacantes nuevas:', vacantesNuevas.length);
-	console.log('Vacantes nuevas:', vacantesNuevas);
 
 	if (vacantesNuevas.length === 0) return;
 
@@ -77,7 +76,6 @@ async function obtenerVacantesPublicadas({ SUPABASE_URL, SUPABASE_KEY }) {
 
 	if (upsertError) console.error('Error in batch upsert:', upsertError);
 
-	console.log('Ejecutando tarea programada con Exito: ', new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
 	console.log('Vacantes actualizadas:', vacantes.length);
 }
 
